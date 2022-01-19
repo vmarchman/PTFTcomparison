@@ -1,0 +1,363 @@
+---
+title: "PT/FT Group Differences Analyses"
+author: "Virginia Marchman"
+date: "May 6, 2021; updated 6/3/2021, updated 1/13/2022"
+output:
+  html_document: 
+   toc: true
+   toc_float: true
+---
+
+```{r, echo = F}
+library(knitr)
+opts_chunk$set(echo=TRUE, 
+               warning=FALSE, message=FALSE, 
+               cache=FALSE)
+options(width = 100)
+```
+
+This is the code to generate the analyses in Marchman, V.A., Ashland, M., Loi, E.C., Shannon, K. A., Munevar, M., Fernald, A, & Feldman, H. M. Associations between early efficiency in language processing and learning outcomes in children born full term and preterm: Similarities and differences.
+
+Load libraries and set theme
+```{r}
+library(tidyverse)
+library(effsize)
+library(stargazer)
+library(psych)
+library(powerAnalysis)
+
+theme_set(theme_bw())
+```
+
+
+# Data prepping
+### Load data
+```{r}
+PTFT <- read_csv("PTFTdata1.csv")
+
+PTFT <- as.data.frame(PTFT)
+```
+
+
+
+### Check data
+```{r}
+# Sex - 46 females, 49 males
+PTFT %>% 
+  group_by(Sex, Group) %>% 
+  count()
+```
+
+### Transform variables (e.g., character to factor)
+```{r}
+PTFT <- PTFT %>% 
+  mutate(SubjectID = factor(SubjectID),
+         Sex = factor(Sex), Group = factor(Group))
+```
+
+# Demographic variables
+### Descriptive statistics - t-tests by Birth Group - Table 1
+
+```{r}
+
+t.test(GADays ~ Group, data = PTFT, var.equal = FALSE)
+t.test(BirthWtGm ~ Group, data = PTFT, var.equal = FALSE)
+t.test(MomEdu ~ Group, data = PTFT, var.equal = FALSE)
+t.test(HI_SES ~ Group, data = PTFT, var.equal = FALSE)
+t.test(AgeAtFirstVisit_PDEV18ATL318C ~ Group, data = PTFT, var.equal = FALSE)
+t.test(AgeAtFirstVisit_PDEV54CTL354C ~ Group, data = PTFT, var.equal = FALSE)
+
+```
+
+
+### Percentage of children by birth order
+```{r}
+PTFT %>% 
+  group_by(BirthOrder, Group) %>% 
+  count() %>% 
+  ungroup() %>% 
+  mutate(percentage = n/sum(n))
+
+PTFTbirthgp <- PTFT %>%
+  mutate(
+    birthgroup = case_when(
+          BirthOrder == 1 ~ 1,
+          BirthOrder == 2 ~ 2,
+          BirthOrder > 2 ~ 3)
+    )
+
+PTFTbirthgp %>% 
+  group_by(birthgroup, Group) %>% 
+  count() %>% 
+  ungroup() %>% 
+  mutate(percentage = n/sum(n))
+
+```
+
+
+
+### Number of trials for RT and test for differences between birthgroup.
+```{r}
+
+PTFT %>% group_by(Group) %>%
+  summarise(mean_trials = mean(DRTAB183001800knownnumPDEV18ATL318C, na.rm = T), 
+            sd_trials = sd(DRTAB183001800knownnumPDEV18ATL318C, na.rm = T),
+            min_trials = min(DRTAB183001800knownnumPDEV18ATL318C, na.rm = T), 
+            max_trials = max(DRTAB183001800knownnumPDEV18ATL318C, na.rm = T))
+
+t.test(DRTAB183001800knownnumPDEV18ATL318C ~ Group, data = PTFT)
+
+```
+
+
+
+### Number of trials for Accuracy and test for differences between birthgroups.
+```{r}
+
+PTFT %>% group_by(Group) %>%
+  summarise(mean_trials = mean(AccAB183001800knownnumPDEV18ATL318C, na.rm = T), 
+            sd_trials = sd(AccAB183001800knownnumPDEV18ATL318C, na.rm = T),
+            min_trials = min(AccAB183001800knownnumPDEV18ATL318C, na.rm = T), 
+            max_trials = max(AccAB183001800knownnumPDEV18ATL318C, na.rm = T))
+
+t.test(AccAB183001800knownnumPDEV18ATL318C ~ Group, data = PTFT)
+
+```
+
+
+
+# LWL measures at 18 months - Table 2
+```{r}
+# Accuracy - t-test against chance
+
+t.test(PTFT$AccAB183001800knownPDEV18ATL318C, y = NULL, mu = .50, var.equal = FALSE)
+
+(mean(PTFT$AccAB183001800knownPDEV18ATL318C) - .50) / sd(PTFT$AccAB183001800knownPDEV18ATL318C)
+
+# Accuracy - t-test by group
+
+t.test(AccAB183001800knownPDEV18ATL318C ~ Group, data = PTFT)
+
+# RT - t-test by group
+
+t.test(RT18A18C_NO1RT ~ Group, data = PTFT)
+
+# Correlations between Accuracy and RT
+
+cor.test(PTFT$AccAB183001800knownPDEV18ATL318C, PTFT$RT18A18C_NO1RT)
+
+```
+# LWL measures at 18 months - within PT and FT group separately
+```{r}
+
+# Accuracy - t-test against chance - PT group only
+
+PTonly <- PTFT %>%
+  filter(Group == "PT")
+
+  t.test(PTonly$AccAB183001800knownPDEV18ATL318C, y = NULL, mu = .50, var.equal = FALSE)
+
+# Accuracy - t-test against chance - FT group only
+
+FTonly <- PTFT %>%
+  filter(Group == "FT")
+
+  t.test(FTonly$AccAB183001800knownPDEV18ATL318C, y = NULL, mu = .50, var.equal = FALSE)
+
+```
+
+# Child language measures at 4.5 years - Table 2
+```{r}
+# CELF
+t.test(CELF_Exp_PDEV54TL354_CELF_ExpressiveLanguage_standard ~ Group, data = PTFT)
+
+#effsize::cohen.d(PTFT$CELF_Exp_PDEV54TL354_CELF_ExpressiveLanguage_standard)
+
+# Print Knowledge
+
+t.test(PDEV54TL354_TOPEL_PrintKnowledge_standard ~ Group, data = PTFT)
+
+# Phonological Awareness
+
+t.test(PHONAWARE_PDEV54TL354_TOPEL_PhonologicalAwareness_standard ~ Group, data = PTFT)
+
+# Nonverbal IQ
+
+t.test(IQPDEV54TL354_Leiter_BriefIQ_IQ_compscor ~ Group, data = PTFT)
+
+```
+
+# Regression models
+
+### Models 1a to 1e CELF Expressive Language - Table 3
+```{r}
+# covariates SES and Age and Group
+m1a <- lm(CELF_Exp_PDEV54TL354_CELF_ExpressiveLanguage_standard ~ AgeAtFirstVisit_PDEV54CTL354C + 
+            HI_SES + Group, data = PTFT)
+
+# covariates + Group + Accuracy
+m1b <- lm(CELF_Exp_PDEV54TL354_CELF_ExpressiveLanguage_standard ~ AgeAtFirstVisit_PDEV54CTL354C +
+            HI_SES + Group + AccAB183001800knownPDEV18ATL318C, data = PTFT)
+
+# covariates + Group + Accuracy + Acc x Group
+m1c <- lm(CELF_Exp_PDEV54TL354_CELF_ExpressiveLanguage_standard ~ AgeAtFirstVisit_PDEV54CTL354C +
+            HI_SES + Group * AccAB183001800knownPDEV18ATL318C, data = PTFT)
+
+# covariates + Group + RT
+m1d <- lm(CELF_Exp_PDEV54TL354_CELF_ExpressiveLanguage_standard ~ AgeAtFirstVisit_PDEV54CTL354C + 
+            HI_SES + Group + RT18A18C_NO1RT, data = PTFT)
+
+# covariates + Group + RT + RT x Group
+m1e <- lm(CELF_Exp_PDEV54TL354_CELF_ExpressiveLanguage_standard ~ AgeAtFirstVisit_PDEV54CTL354C + 
+            HI_SES + Group * RT18A18C_NO1RT, data = PTFT)
+
+# comparisons
+anova(m1a, m1b)
+anova(m1b, m1c)
+anova(m1a, m1d)
+anova(m1d, m1e)
+
+stargazer(m1a, m1b, m1c, m1d, m1e, type = "text",
+         star.char = c(".","*","**","***"),
+         star.cutoffs = c(.1, .05, .01, .001),
+         notes = c(". p<0.1; * p<0.05; ** p<0.01; *** p<0.001"),
+         notes.append = F,
+         digits = 3,
+         dep.var.labels = c("Expressive Vocabulary"),
+         covariate.labels=c("Age at test", "SES",
+                            "Group",
+                            "Acc x Group",
+                            "RT",
+                            "RT x Group"))
+
+```
+### Models 2a - 2e Print Knowledge - Table 4
+```{r}
+# covariates SES and Age and Group
+
+m2a <- lm(PDEV54TL354_TOPEL_PrintKnowledge_standard ~ AgeAtFirstVisit_PDEV54CTL354C + 
+            HI_SES + Group, data = PTFT)
+
+# covariates + Group + Accuracy
+m2b <- lm(PDEV54TL354_TOPEL_PrintKnowledge_standard ~ AgeAtFirstVisit_PDEV54CTL354C +
+            HI_SES + Group + AccAB183001800knownPDEV18ATL318C, data = PTFT)
+
+# covariates + Group + Accuracy + Acc x Group
+m2c <- lm(PDEV54TL354_TOPEL_PrintKnowledge_standard ~ AgeAtFirstVisit_PDEV54CTL354C +
+            HI_SES + Group * AccAB183001800knownPDEV18ATL318C, data = PTFT)
+
+# covariates + Group + RT
+m2d <- lm(PDEV54TL354_TOPEL_PrintKnowledge_standard ~ AgeAtFirstVisit_PDEV54CTL354C + 
+            HI_SES + Group + RT18A18C_NO1RT, data = PTFT)
+
+# covariates + Group + RT + RT x Group
+m2e <- lm(PDEV54TL354_TOPEL_PrintKnowledge_standard ~ AgeAtFirstVisit_PDEV54CTL354C + 
+            HI_SES + Group * RT18A18C_NO1RT, data = PTFT)
+
+# comparisons
+anova(m2a, m2b)
+anova(m2b, m2c)
+anova(m2a, m2d)
+anova(m2d, m2e)
+
+stargazer(m2a, m2b, m2c, m2d, m2e, type = "text",
+         star.char = c(".","*","**","***"),
+         star.cutoffs = c(.1, .05, .01, .001),
+         notes = c(". p<0.1; * p<0.05; ** p<0.01; *** p<0.001"),
+         notes.append = F,
+         digits = 3,
+         dep.var.labels = c("Print Knowledge"),
+         covariate.labels=c("Age at test", "SES",
+                            "Group",
+                            "Acc x Group",
+                            "RT",
+                            "RT x Group"))
+
+```
+### Models 3a to 3e - Phonological Awareness - Table 5
+```{r}
+
+# covariates SES and Age and Group
+
+m3a <- lm(PHONAWARE_PDEV54TL354_TOPEL_PhonologicalAwareness_standard ~ AgeAtFirstVisit_PDEV54CTL354C + 
+            HI_SES + Group, data = PTFT)
+
+# covariates + Group + Accuracy
+m3b <- lm(PHONAWARE_PDEV54TL354_TOPEL_PhonologicalAwareness_standard ~ AgeAtFirstVisit_PDEV54CTL354C +
+            HI_SES + Group + AccAB183001800knownPDEV18ATL318C, data = PTFT)
+
+# covariates + Group + Accuracy + Acc x Group
+m3c <- lm(PHONAWARE_PDEV54TL354_TOPEL_PhonologicalAwareness_standard ~ AgeAtFirstVisit_PDEV54CTL354C +
+            HI_SES + Group * AccAB183001800knownPDEV18ATL318C, data = PTFT)
+
+# covariates + Group + RT
+m3d <- lm(PHONAWARE_PDEV54TL354_TOPEL_PhonologicalAwareness_standard ~ AgeAtFirstVisit_PDEV54CTL354C + 
+            HI_SES + Group + RT18A18C_NO1RT, data = PTFT)
+
+# covariates + Group + RT + RT x Group
+m3e <- lm(PHONAWARE_PDEV54TL354_TOPEL_PhonologicalAwareness_standard ~ AgeAtFirstVisit_PDEV54CTL354C + 
+            HI_SES + Group * RT18A18C_NO1RT, data = PTFT)
+
+# comparisons
+anova(m3a, m3b)
+anova(m3b, m3c)
+anova(m3a, m3d)
+anova(m3d, m3e)
+
+stargazer(m3a, m3b, m3c, m3d, m3e, type = "text",
+         star.char = c(".","*","**","***"),
+         star.cutoffs = c(.1, .05, .01, .001),
+         notes = c(". p<0.1; * p<0.05; ** p<0.01; *** p<0.001"),
+         notes.append = F,
+         digits = 3,
+         dep.var.labels = c("Phonological Awareness"),
+         covariate.labels=c("Age at test", "SES",
+                            "Group",
+                            "Acc x Group",
+                            "RT",
+                            "RT x Group"))
+```
+### Models 4a to 4e - Non Verbal IQ - Table 6
+```{r}
+# covariates SES and Age and Group
+
+m4a <- lm(IQPDEV54TL354_Leiter_BriefIQ_IQ_compscor ~ AgeAtFirstVisit_PDEV54CTL354C + 
+            HI_SES + Group, data = PTFT)
+
+# covariates + Group + Accuracy
+m4b <- lm(IQPDEV54TL354_Leiter_BriefIQ_IQ_compscor ~ AgeAtFirstVisit_PDEV54CTL354C +
+            HI_SES + Group + AccAB183001800knownPDEV18ATL318C, data = PTFT)
+
+# covariates + Group + Accuracy + Acc x Group
+m4c <- lm(IQPDEV54TL354_Leiter_BriefIQ_IQ_compscor ~ AgeAtFirstVisit_PDEV54CTL354C +
+            HI_SES + Group * AccAB183001800knownPDEV18ATL318C, data = PTFT)
+
+# covariates + Group + RT
+m4d <- lm(IQPDEV54TL354_Leiter_BriefIQ_IQ_compscor ~ AgeAtFirstVisit_PDEV54CTL354C + 
+            HI_SES + Group + RT18A18C_NO1RT, data = PTFT)
+
+# covariates + Group + RT + RT x Group
+m4e <- lm(IQPDEV54TL354_Leiter_BriefIQ_IQ_compscor ~ AgeAtFirstVisit_PDEV54CTL354C + 
+            HI_SES + Group * RT18A18C_NO1RT, data = PTFT)
+
+# comparisons
+anova(m4a, m4b)
+anova(m4b, m4c)
+anova(m4a, m4d)
+anova(m4d, m4e)
+
+stargazer(m4a, m4b, m4c, m4d, m4e, type = "text",
+         star.char = c(".","*","**","***"),
+         star.cutoffs = c(.1, .05, .01, .001),
+         notes = c(". p<0.1; * p<0.05; ** p<0.01; *** p<0.001"),
+         notes.append = F,
+         digits = 3,
+         dep.var.labels = c("Non-verbal IQ"),
+         covariate.labels=c("Age at test", "SES",
+                            "Group",
+                            "Acc x Group",
+                            "RT",
+                            "RT x Group"))
+```
+
+```
