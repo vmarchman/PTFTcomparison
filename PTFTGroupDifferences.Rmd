@@ -1,7 +1,7 @@
 ---
 title: "PT/FT Group Differences Analyses - Moderation"
 author: "Virginia Marchman"
-date: "May 6, 2021; updated 6/3/2021, updated 1/13/2022; updated 5/25/2022"
+date: "May 6, 2021; updated 6/3/2021, updated 1/13/2022; updated 5/25/2022; updated 8/20/2022"
 output:
   html_document: 
    toc: true
@@ -45,6 +45,11 @@ PTFT <- as.data.frame(PTFT)
 ### Check data
 ```{r}
 # Sex - 46 females, 49 males
+
+PTFT %>% 
+  group_by(Group) %>% 
+  count()
+
 PTFT %>% 
   group_by(Group, Sex) %>% 
   count()
@@ -180,6 +185,30 @@ FTonly <- PTFT %>%
 ```
 
 # Child language measures at 4.5 years - Table 2
+# Group difference by sex
+```{r}
+
+PTFT %>% group_by(Sex) %>%
+  summarise(mean_PPVT = mean(PPVT_RecVocab_standard, na.rm = T), 
+            sd_PPVT = sd(PPVT_RecVocab_standard, na.rm = T),
+            mean_CELF = mean(CELF_Exp_PDEV54TL354_CELF_ExpressiveLanguage_standard, na.rm = T), 
+            se_CELF = sd(CELF_Exp_PDEV54TL354_CELF_ExpressiveLanguage_standard, na.rm = T),
+            mean_IQ = mean(IQPDEV54TL354_Leiter_BriefIQ_IQ_compscor, na.rm = T), 
+            se_IQ = sd(IQPDEV54TL354_Leiter_BriefIQ_IQ_compscor, na.rm = T))
+
+
+# PPVT
+t.test(PPVT_RecVocab_standard ~ Sex, data = PTFT)
+
+# CELF
+t.test(CELF_Exp_PDEV54TL354_CELF_ExpressiveLanguage_standard ~ Sex, data = PTFT)
+
+#IQ
+
+t.test(IQPDEV54TL354_Leiter_BriefIQ_IQ_compscor ~ Sex, data = PTFT)
+
+```
+#Group differences by Group
 ```{r}
 
 PTFT %>% group_by(Group) %>%
@@ -251,25 +280,25 @@ stargazer(m1a, m1b, m1c, m1d, m1e, type = "text",
 
 ### Models 2a to 2e CELF Expressive Language - Table 4
 ```{r}
-# covariates SES and Age and Group
+# covariates SES, Age, Sex and Group
 m2a <- lm(CELF_Exp_PDEV54TL354_CELF_ExpressiveLanguage_standard ~ AgeAtFirstVisit_PDEV54CTL354C + 
-            HI_SES + Group, data = PTFT)
+            HI_SES + Sex + Group, data = PTFT)
 
 # covariates + Group + Accuracy
 m2b <- lm(CELF_Exp_PDEV54TL354_CELF_ExpressiveLanguage_standard ~ AgeAtFirstVisit_PDEV54CTL354C +
-            HI_SES + Group + AccAB183001800knownPDEV18ATL318C, data = PTFT)
+            HI_SES + Sex + Group + AccAB183001800knownPDEV18ATL318C, data = PTFT)
 
 # covariates + Group + Accuracy + Acc x Group
 m2c <- lm(CELF_Exp_PDEV54TL354_CELF_ExpressiveLanguage_standard ~ AgeAtFirstVisit_PDEV54CTL354C +
-            HI_SES + Group * AccAB183001800knownPDEV18ATL318C, data = PTFT)
+            HI_SES + Sex + Group * AccAB183001800knownPDEV18ATL318C, data = PTFT)
 
 # covariates + Group + RT
 m2d <- lm(CELF_Exp_PDEV54TL354_CELF_ExpressiveLanguage_standard ~ AgeAtFirstVisit_PDEV54CTL354C + 
-            HI_SES + Group + RT18A18C_NO1RT, data = PTFT)
+            HI_SES + Sex + Group + RT18A18C_NO1RT, data = PTFT)
 
 # covariates + Group + RT + RT x Group
 m2e <- lm(CELF_Exp_PDEV54TL354_CELF_ExpressiveLanguage_standard ~ AgeAtFirstVisit_PDEV54CTL354C + 
-            HI_SES + Group * RT18A18C_NO1RT, data = PTFT)
+            HI_SES + Sex + Group * RT18A18C_NO1RT, data = PTFT)
 
 # comparisons
 anova(m2a, m2b)
@@ -282,9 +311,9 @@ stargazer(m2a, m2b, m2c, m2d, m2e, type = "text",
          star.cutoffs = c(.1, .05, .01, .001),
          notes = c(". p<0.1; * p<0.05; ** p<0.01; *** p<0.001"),
          notes.append = F,
-         digits = 2,
+         digits = 3,
          dep.var.labels = c("Expressive Language"),
-         covariate.labels=c("Age at test", "SES",
+         covariate.labels=c("Age at test", "SES", "Sex",
                             "Group",
                             "Acc",
                             "Acc x Group",
