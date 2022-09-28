@@ -1,11 +1,13 @@
 ---
 title: "PT/FT Group Differences Analyses - Moderation"
 author: "Virginia Marchman"
-date: "May 6, 2021; updated 6/3/2021, updated 1/13/2022; updated 5/25/2022; updated 8/20/2022"
+date: "May 6, 2021; updated 6/3/2021, updated 1/13/2022; updated 5/25/2022; updated 8/20/2022; updated 9/27/2022"
 output:
   html_document: 
-   toc: true
-   toc_float: true
+    toc: yes
+    toc_float: yes
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r, echo = F}
@@ -18,7 +20,8 @@ options(width = 100)
 
 # This is the code to generate the analyses in Marchman, V.A., Ashland, M., Loi, E.C., Shannon, K. A., Munevar, M., Fernald, A, & Feldman, H. M. Associations between early efficiency in language processing and learning outcomes in children born full term and preterm: Similarities and differences.
 
-Load libraries and set theme
+#Load libraries and set theme
+
 ```{r}
 library(tidyverse)
 library(effsize)
@@ -30,9 +33,10 @@ library(reghelper)
 theme_set(theme_bw())
 ```
 
-
 # Data prepping
+
 ### Load data
+
 ```{r}
 
 PTFT <- read_csv("PTFTdata.csv")
@@ -40,9 +44,8 @@ PTFT <- read_csv("PTFTdata.csv")
 PTFT <- as.data.frame(PTFT)
 ```
 
-
-
 ### Check data
+
 ```{r}
 # Sex - 46 females, 49 males
 
@@ -56,6 +59,7 @@ PTFT %>%
 ```
 
 ### Transform variables (e.g., character to factor)
+
 ```{r}
 PTFT <- PTFT %>% 
   mutate(SubjectID = factor(SubjectID),
@@ -63,6 +67,7 @@ PTFT <- PTFT %>%
 ```
 
 # Demographic variables
+
 ### Descriptive statistics - t-tests by Birth Group - Table 1
 
 ```{r}
@@ -76,8 +81,8 @@ t.test(AgeAtFirstVisit_PDEV54CTL354C ~ Group, data = PTFT, var.equal = FALSE)
 
 ```
 
-
 ### Percentage of children by birth order
+
 ```{r}
 PTFT %>% 
   group_by(BirthOrder, Group) %>% 
@@ -100,7 +105,9 @@ PTFTbirthgp %>%
   mutate(percentage = n/sum(n))
 
 ```
+
 ### Number of trials with known words by birthgroup.
+
 ```{r}
 
 
@@ -115,6 +122,7 @@ t.test(PeekVocabChecklist_UnderstandsKnownWords_TL318PDEV18A ~ Group, data = PTF
 ```
 
 ### Number of trials for RT and test for differences between birthgroup.
+
 ```{r}
 
 PTFT %>% group_by(Group) %>%
@@ -127,9 +135,8 @@ t.test(DRTAB183001800knownnumPDEV18ATL318C ~ Group, data = PTFT)
 
 ```
 
-
-
 ### Number of trials for Accuracy and test for differences between birthgroups.
+
 ```{r}
 
 PTFT %>% group_by(Group) %>%
@@ -142,9 +149,8 @@ t.test(AccAB183001800knownnumPDEV18ATL318C ~ Group, data = PTFT)
 
 ```
 
-
-
 # LWL measures at 18 months - Table 2
+
 ```{r}
 # Accuracy - t-test against chance overall
 
@@ -165,7 +171,9 @@ t.test(RT18A18C_NO1RT ~ Group, data = PTFT)
 cor.test(PTFT$AccAB183001800knownPDEV18ATL318C, PTFT$RT18A18C_NO1RT)
 
 ```
+
 # LWL measures at 18 months - within PT and FT group separately
+
 ```{r}
 
 # Accuracy - t-test against chance - PT group only
@@ -185,7 +193,9 @@ FTonly <- PTFT %>%
 ```
 
 # Child language measures at 4.5 years - Table 2
+
 # Group difference by sex
+
 ```{r}
 
 PTFT %>% group_by(Sex) %>%
@@ -208,7 +218,9 @@ t.test(CELF_Exp_PDEV54TL354_CELF_ExpressiveLanguage_standard ~ Sex, data = PTFT)
 t.test(IQPDEV54TL354_Leiter_BriefIQ_IQ_compscor ~ Sex, data = PTFT)
 
 ```
+
 #Group differences by Group
+
 ```{r}
 
 PTFT %>% group_by(Group) %>%
@@ -232,29 +244,33 @@ t.test(IQPDEV54TL354_Leiter_BriefIQ_IQ_compscor ~ Group, data = PTFT)
 ```
 
 # Regression models
+
 ### Models 1a to 1e PPVT Receptive Vocabulary - Table 3
 
 ```{r}
 
+PTFTPPVT <- PTFT %>% 
+  filter(PPVT_RecVocab_standard != "NA")
+
 # covariates SES and Age and Group
 m1a <- lm(PPVT_RecVocab_standard ~ AgeAtFirstVisit_PDEV54CTL354C + 
-            HI_SES + Group, data = PTFT)
+            HI_SES + Group, data = PTFTPPVT)
 
 # covariates + Group + Accuracy
 m1b <- lm(PPVT_RecVocab_standard ~ AgeAtFirstVisit_PDEV54CTL354C +
-            HI_SES + Group + AccAB183001800knownPDEV18ATL318C, data = PTFT)
+            HI_SES + Group + AccAB183001800knownPDEV18ATL318C, data = PTFTPPVT)
 
 # covariates + Group + Accuracy + Acc x Group
 m1c <- lm(PPVT_RecVocab_standard ~ AgeAtFirstVisit_PDEV54CTL354C +
-            HI_SES + Group * AccAB183001800knownPDEV18ATL318C, data = PTFT)
+            HI_SES + Group * AccAB183001800knownPDEV18ATL318C, data = PTFTPPVT)
 
 # covariates + Group + RT
 m1d <- lm(PPVT_RecVocab_standard ~ AgeAtFirstVisit_PDEV54CTL354C + 
-            HI_SES + Group + RT18A18C_NO1RT, data = PTFT)
+            HI_SES + Group + RT18A18C_NO1RT, data = PTFTPPVT)
 
 # covariates + Group + RT + RT x Group
 m1e <- lm(PPVT_RecVocab_standard ~ AgeAtFirstVisit_PDEV54CTL354C + 
-            HI_SES + Group * RT18A18C_NO1RT, data = PTFT)
+            HI_SES + Group * RT18A18C_NO1RT, data = PTFTPPVT)
 
 # comparisons
 anova(m1a, m1b)
@@ -276,9 +292,29 @@ stargazer(m1a, m1b, m1c, m1d, m1e, type = "text",
                             "RT",
                             "RT x Group"))
 
+
+PTFTPPVT$fittedPPVT <- predict(m1e, re.form = ~0)
+
+m1e %>% ggplot(aes(y = PTFTPPVT$fittedPPVT, x = RT18A18C_NO1RT, linetype = Group)) +
+  theme_bw() + 
+  # geom_line(color = "black", size = 1.3) +
+  geom_smooth(method = "lm", se = FALSE, level = .95, color = "black", size = 1.3) +
+  theme(panel.grid = element_blank()) +
+  labs(
+    x = "Language Processing Speed (RT) at 18 months", 
+    y = "Receptive \n Vocabulary \n Standard \n Score \n 4.5 years \n (modeled \n estimate)", linetype = "Group") +
+  scale_x_continuous(breaks=seq(500, 1200, 100)) +
+  scale_y_continuous(limits = c(70, 150), breaks = seq(70,150,10)) +
+  coord_cartesian(ylim = c(70,150)) +
+  theme(axis.title.y = element_text(angle = 0, vjust = 0.5)) +
+  theme(text = element_text(size = 18))
+
+ggsave("G:/Shared drives/Lang Learning Lab Management Archived/Studies Archive/PDEV Series/PDEV/PDEV Papers/PTFT Group Differences/Moderation/Figure1_Final.jpg", height = 8, width = 11, units = "in", dpi = 300)
+
 ```
 
 ### Models 2a to 2e CELF Expressive Language - Table 4
+
 ```{r}
 # covariates SES, Age, Sex and Group
 m2a <- lm(CELF_Exp_PDEV54TL354_CELF_ExpressiveLanguage_standard ~ AgeAtFirstVisit_PDEV54CTL354C + 
@@ -320,8 +356,30 @@ stargazer(m2a, m2b, m2c, m2d, m2e, type = "text",
                             "RT",
                             "RT x Group"))
 
+
+PTFT$fittedCELF <- predict(m2e, re.form = ~0)
+
+m2e %>% ggplot(aes(y = PTFT$fittedCELF, x = RT18A18C_NO1RT, linetype = Group)) +
+  theme_bw() + 
+  #geom_line(color = "black", size = 1.3) +
+  geom_smooth(method = "lm", se = FALSE, level = .95, color = "black", size = 1.3) +
+  theme(panel.grid = element_blank()) +
+  labs(
+    x = "Language Processing Speed (RT) at 18 months", 
+    y = "Expressive \n Language \n Standard \n Score \n 4.5 years \n (modeled \n estimate)", linetype = "Group") +
+  scale_x_continuous(breaks=seq(500, 1200, 100)) +
+  scale_y_continuous(limits = c(70, 150), breaks = seq(70,150,10)) +
+  coord_cartesian(ylim = c(70,150)) +
+  theme(axis.title.y = element_text(angle = 0, vjust = 0.5)) +
+  theme(text = element_text(size = 18))
+
+ggsave("G:/Shared drives/Lang Learning Lab Management Archived/Studies Archive/PDEV Series/PDEV/PDEV Papers/PTFT Group Differences/Moderation/Figure2_Final.jpg", height = 8, width = 11, units = "in", dpi = 300)
+
+
 ```
-### ### Models 3a to 3e - Non Verbal IQ - Table 5
+
+###Models 3a to 3e - Non Verbal IQ - Table 5
+
 ```{r}
 # covariates SES and Age and Group
 
@@ -375,5 +433,24 @@ stargazer(m3a, m3b, m3c, m3d, m3e, type = "text",
 
 simple_slopes(m3e)
 
+## Plot models
+
+PTFT$fittedIQ <- predict(m3e, re.form = ~0)
+
+m2e %>% ggplot(aes(y = PTFT$fittedIQ, x = RT18A18C_NO1RT, linetype = Group)) +
+  theme_bw() + 
+  #geom_line(color = "black", size = 1.3) +
+  geom_smooth(method = "lm", se = FALSE, level = .95, color = "black", size = 1.3) +
+  theme(panel.grid = element_blank()) +
+  labs(
+    x = "Language Processing Speed (RT) at 18 months", 
+    y = "Nonverbal \n IQ \n Standard \n Score \n 4.5 years \n (modeled \n estimate)", linetype = "Group") +
+  scale_x_continuous(breaks=seq(500, 1200, 100)) +
+  scale_y_continuous(limits = c(70, 150), breaks = seq(70,150,10)) +
+  coord_cartesian(ylim = c(70,150)) +
+  theme(axis.title.y = element_text(angle = 0, vjust = 0.5)) +
+  theme(text = element_text(size = 18))
+
+ggsave("G:/Shared drives/Lang Learning Lab Management Archived/Studies Archive/PDEV Series/PDEV/PDEV Papers/PTFT Group Differences/Moderation/Figure3_Final.jpg", height = 8, width = 11, units = "in", dpi = 300)
 
 ```
