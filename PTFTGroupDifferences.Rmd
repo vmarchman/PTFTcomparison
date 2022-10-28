@@ -1,7 +1,7 @@
 ---
 title: "PT/FT Group Differences Analyses - Moderation"
 author: "Virginia Marchman"
-date: "May 6, 2021; updated 6/3/2021, updated 1/13/2022; updated 5/25/2022; updated 8/20/2022; updated 9/27/2022"
+date: "May 6, 2021; updated 6/3/2021, updated 1/13/2022; updated 5/25/2022; updated 8/20/2022; updated 9/27/2022; FINAL 10/27/2022"
 output:
   html_document: 
     toc: yes
@@ -18,7 +18,7 @@ opts_chunk$set(echo=TRUE,
 options(width = 100)
 ```
 
-# This is the code to generate the analyses in Marchman, V.A., Ashland, M., Loi, E.C., Shannon, K. A., Munevar, M., Fernald, A, & Feldman, H. M. Associations between early efficiency in language processing and learning outcomes in children born full term and preterm: Similarities and differences.
+# This is the code to generate the analyses in Marchman, V.A., Ashland, M., Loi, E.C., Shannon, K. A., Munevar, M., Fernald, A, & Feldman, H. M. Associations between early efficiency in language processing and learning outcomes in children born full term and preterm: Similarities and differences. In press, Child Neuropsychology, 10/2022
 
 #Load libraries and set theme
 
@@ -47,7 +47,11 @@ PTFT <- as.data.frame(PTFT)
 ### Check data
 
 ```{r}
-# Sex - 46 females, 49 males
+# Group - 49 FT, 45 PT; Sex - 46 females, 49 males
+
+PTFT %>% 
+  group_by(Group) %>% 
+  count()
 
 PTFT %>% 
   group_by(Group) %>% 
@@ -192,7 +196,7 @@ FTonly <- PTFT %>%
 
 ```
 
-# Child language measures at 4.5 years - Table 2
+# Child language measures at 4.5 years
 
 # Group difference by sex
 
@@ -219,7 +223,7 @@ t.test(IQPDEV54TL354_Leiter_BriefIQ_IQ_compscor ~ Sex, data = PTFT)
 
 ```
 
-#Group differences by Group
+#Group differences by Group - Table 2
 
 ```{r}
 
@@ -309,7 +313,7 @@ m1e %>% ggplot(aes(y = PTFTPPVT$fittedPPVT, x = RT18A18C_NO1RT, linetype = Group
   theme(axis.title.y = element_text(angle = 0, vjust = 0.5)) +
   theme(text = element_text(size = 18))
 
-ggsave("G:/Shared drives/Lang Learning Lab Management Archived/Studies Archive/PDEV Series/PDEV/PDEV Papers/PTFT Group Differences/Moderation/Figure1_Final.jpg", height = 8, width = 11, units = "in", dpi = 300)
+ggsave("Figure1_Final.jpg", height = 8, width = 11, units = "in", dpi = 300)
 
 ```
 
@@ -347,7 +351,7 @@ stargazer(m2a, m2b, m2c, m2d, m2e, type = "text",
          star.cutoffs = c(.1, .05, .01, .001),
          notes = c(". p<0.1; * p<0.05; ** p<0.01; *** p<0.001"),
          notes.append = F,
-         digits = 3,
+         digits = 3, # Change to 3 digits for R2 values
          dep.var.labels = c("Expressive Language"),
          covariate.labels=c("Age at test", "SES", "Sex",
                             "Group",
@@ -373,7 +377,7 @@ m2e %>% ggplot(aes(y = PTFT$fittedCELF, x = RT18A18C_NO1RT, linetype = Group)) +
   theme(axis.title.y = element_text(angle = 0, vjust = 0.5)) +
   theme(text = element_text(size = 18))
 
-ggsave("G:/Shared drives/Lang Learning Lab Management Archived/Studies Archive/PDEV Series/PDEV/PDEV Papers/PTFT Group Differences/Moderation/Figure2_Final.jpg", height = 8, width = 11, units = "in", dpi = 300)
+ggsave("Figure2_Final.jpg", height = 8, width = 11, units = "in", dpi = 300)
 
 
 ```
@@ -419,7 +423,7 @@ stargazer(m3a, m3b, m3c, m3d, m3e, type = "text",
          star.cutoffs = c(.1, .05, .01, .001),
          notes = c(". p<0.1; * p<0.05; ** p<0.01; *** p<0.001"),
          notes.append = F,
-         digits = 2,
+         digits = 2, # Change to 3 to get R2 values
          dep.var.labels = c("Non-verbal IQ"),
          covariate.labels=c("Age at test", "SES",
                             "Group",
@@ -451,6 +455,6 @@ m2e %>% ggplot(aes(y = PTFT$fittedIQ, x = RT18A18C_NO1RT, linetype = Group)) +
   theme(axis.title.y = element_text(angle = 0, vjust = 0.5)) +
   theme(text = element_text(size = 18))
 
-ggsave("G:/Shared drives/Lang Learning Lab Management Archived/Studies Archive/PDEV Series/PDEV/PDEV Papers/PTFT Group Differences/Moderation/Figure3_Final.jpg", height = 8, width = 11, units = "in", dpi = 300)
+ggsave("Figure3_Final.jpg", height = 8, width = 11, units = "in", dpi = 300)
 
 ```
